@@ -27,11 +27,17 @@ async function run() {
     await client.connect();
 
     const classCollection = client.db("designtechitDB").collection("classes");
+    const userCollection = client.db("designtechitDB").collection("users");
 
     app.get('/classes', async(req, res) => {
         const result = await classCollection.find().toArray();
         res.send(result);
     })
+
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
