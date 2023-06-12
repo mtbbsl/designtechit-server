@@ -27,16 +27,27 @@ async function run() {
 
     const classCollection = client.db("designtechitDB").collection("classes");
     const userCollection = client.db("designtechitDB").collection("users");
+    const cartCollection = client.db("designtechitDB").collection("carts");
 
+    // Class collection
     app.get("/classes", async (req, res) => {
       const result = await classCollection.find().toArray();
       res.send(result);
     });
 
+    // User collection
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+
+    // Cart collection
+    app.post('/carts', async(req, res) => {
+      const item = req.body;
+      console.log(item);
+      const result = await cartCollection.insertOne(item);
+      res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
