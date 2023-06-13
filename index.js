@@ -29,17 +29,24 @@ async function run() {
     const userCollection = client.db("designtechitDB").collection("users");
     const cartCollection = client.db("designtechitDB").collection("carts");
 
-    // Class collection
+    // Class collection apis
     app.get("/classes", async (req, res) => {
       const result = await classCollection.find().toArray();
       res.send(result);
     });
 
-    // User collection
+    // User collection apis
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+
+    app.post("/users", async(req, res) => {
+      const user = req.body;
+      console.log(user);
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
 
     // Cart collection apis
     app.get("/carts", async (req, res) => {
@@ -54,7 +61,6 @@ async function run() {
 
     app.post("/carts", async(req, res) => {
       const item = req.body;
-      console.log(item);
       const result = await cartCollection.insertOne(item);
       res.send(result);
     })
