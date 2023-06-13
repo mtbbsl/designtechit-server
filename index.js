@@ -41,36 +41,40 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/users", async(req, res) => {
+    app.post("/users", async (req, res) => {
       const user = req.body;
-      console.log(user);
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exists" });
+      }
       const result = await userCollection.insertOne(user);
       res.send(result);
-    })
+    });
 
     // Cart collection apis
     app.get("/carts", async (req, res) => {
       const email = req.query.email;
-      if(!email){
+      if (!email) {
         res.send([]);
       }
       const query = { email: email };
       const result = await cartCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
-    app.post("/carts", async(req, res) => {
+    app.post("/carts", async (req, res) => {
       const item = req.body;
       const result = await cartCollection.insertOne(item);
       res.send(result);
-    })
+    });
 
-    app.delete("/carts/:id", async(req, res) => {
+    app.delete("/carts/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await cartCollection.deleteOne(query);
       res.send(result);
-    })
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
