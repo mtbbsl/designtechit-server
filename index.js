@@ -9,6 +9,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Verify JWT
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
   if(!authorization){
@@ -51,9 +52,32 @@ async function run() {
     // JWT Token
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
-      res.send({ token })
-    })
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
+
+    // Warning: use verifyJWT before using verifyAdmin
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== "Admin") {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden message" });
+      }
+      next();
+    };
+
+
+    /**
+     * 0. do not show secure links to those who should not see the links
+     * 1. use jwt token: verifyJWT
+     * 2. use verifyAdmin middleware
+     */
+
 
     // Class collection apis
     app.get("/classes", async (req, res) => {
@@ -79,40 +103,40 @@ async function run() {
     });
 
     // security layer: 1. verifyJWT 2. Same Email 3. Check Admin
-    app.get('/users/admin/:email', verifyJWT, async(req, res) => {
+    app.get("/users/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       if (req.decoded.email !== email) {
-        res.send({ admin: false })
+        res.send({ admin: false });
       }
-      const query = {email: email}
+      const query = { email: email };
       const user = await userCollection.findOne(query);
-      const result = { admin: user?.status === 'Admin' }
+      const result = { admin: user?.role === "Admin" };
       res.send(result);
-    })
+    });
 
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
-          status: 'Admin'
+          role: "Admin",
         },
       };
       const result = await userCollection.updateOne(query, updateDoc);
       res.send(result);
-    })
+    });
 
     app.patch("/users/instructor/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
-          status: 'Instructor'
+          role: "Instructor",
         },
       };
       const result = await userCollection.updateOne(query, updateDoc);
       res.send(result);
-    })
+    });
 
     // Cart collection apis
     app.get("/carts", verifyJWT, async (req, res) => {
@@ -123,8 +147,10 @@ async function run() {
       }
 
       const decodedEmail = req.decoded.email;
-      if(email !== decodedEmail){
-        return res.status(403).send({error: true, message: 'forbidden access'})
+      if (email !== decodedEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden access" });
       }
 
       const query = { email: email };
