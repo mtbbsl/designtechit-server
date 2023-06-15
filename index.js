@@ -71,14 +71,6 @@ async function run() {
       next();
     };
 
-
-    /**
-     * 0. do not show secure links to those who should not see the links
-     * 1. use jwt token: verifyJWT
-     * 2. use verifyAdmin middleware
-     */
-
-
     // Class collection apis
     app.get("/classes", async (req, res) => {
       const result = await classCollection.find().toArray();
@@ -86,7 +78,18 @@ async function run() {
     });
 
     // User collection apis
-    app.get("/users", async (req, res) => {
+    app.get("/instructors", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    
+    // 1. do not show secure links to those who should not see the links
+    // 2. use jwt token: verifyJWT
+    // 3. use verifyAdmin middleware
+
+    // ISSUE: using verifyAdmin cause issue
+    app.get("/users", verifyJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
