@@ -81,6 +81,24 @@ async function run() {
       res.send(result);
     });
 
+
+    app.get("/myclasses", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden access" });
+      }
+      const query = { email: email };
+      const result = await classCollection.find(query).toArray();
+      res.send(result);
+    });
+
+
     app.post("/classes", verifyJWT, async (req, res) => {
       const newItem = req.body;
       const result = await classCollection.insertOne(newItem);
@@ -153,18 +171,15 @@ async function run() {
     // Cart collection apis
     app.get("/carts", verifyJWT, async (req, res) => {
       const email = req.query.email;
-
       if (!email) {
         res.send([]);
       }
-
       const decodedEmail = req.decoded.email;
       if (email !== decodedEmail) {
         return res
           .status(403)
           .send({ error: true, message: "forbidden access" });
       }
-
       const query = { email: email };
       const result = await cartCollection.find(query).toArray();
       res.send(result);
