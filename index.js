@@ -12,20 +12,24 @@ app.use(express.json());
 // Verify JWT
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
-  if(!authorization){
-    return res.status(401).send({error: true, message: 'unauthorized access'});
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "unauthorized access" });
   }
   // bearer token
-  const token = authorization.split(' ')[1];
+  const token = authorization.split(" ")[1];
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    if(err){
-      return res.status(401).send({error: true, message: 'unauthorized access'});
+    if (err) {
+      return res
+        .status(401)
+        .send({ error: true, message: "unauthorized access" });
     }
     req.decoded = decoded;
     next();
-  })
-}
+  });
+};
 
 // MongoDB Connection String
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -77,13 +81,18 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/classes", verifyJWT, async (req, res) => {
+      const newItem = req.body;
+      const result = await classCollection.insertOne(newItem);
+      res.send(result);
+    });
+
     // User collection apis
     app.get("/instructors", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
 
-    
     // 1. do not show secure links to those who should not see the links
     // 2. use jwt token: verifyJWT
     // 3. use verifyAdmin middleware
