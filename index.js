@@ -132,7 +132,7 @@ async function run() {
       res.send(result);
     });
 
-    // security layer: 1. verifyJWT 2. Same Email 3. Check Admin
+    // security layer: 1. verifyJWT 2. Same Email 3. Check Admin / Instructor
     app.get("/users/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       if (req.decoded.email !== email) {
@@ -144,6 +144,18 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      if (req.decoded.email !== email) {
+        res.send({ instructor: false });
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const result = { instructor: user?.role === "Instructor" };
+      res.send(result);
+    });
+
+    // for change role
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
