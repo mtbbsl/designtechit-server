@@ -209,7 +209,27 @@ async function run() {
       const result = await cartCollection.deleteOne(query);
       res.send(result);
     });
-    
+
+    // Payment collection apis
+    app.get("/myenrolledclass", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden access" });
+      }
+      const query = { email: email };
+      const options = {
+        sort: { "date": -1}
+      }
+      const result = await paymentCollection.find(query, options).toArray();
+      res.send(result);
+    });
+
     // create payment intent
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const { price } = req.body;
