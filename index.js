@@ -53,7 +53,9 @@ async function run() {
     const classCollection = client.db("designtechitDB").collection("classes");
     const userCollection = client.db("designtechitDB").collection("users");
     const cartCollection = client.db("designtechitDB").collection("carts");
-    const paymentCollection = client.db("designtechitDB").collection("payments");
+    const paymentCollection = client
+      .db("designtechitDB")
+      .collection("payments");
 
     // JWT Token
     app.post("/jwt", (req, res) => {
@@ -102,6 +104,31 @@ async function run() {
     app.post("/classes", verifyJWT, async (req, res) => {
       const newItem = req.body;
       const result = await classCollection.insertOne(newItem);
+      res.send(result);
+    });
+
+    // for change status in classCollection
+    app.patch("/classes/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "approved",
+        },
+      };
+      const result = await classCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
+    app.patch("/classes/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "denied",
+        },
+      };
+      const result = await classCollection.updateOne(query, updateDoc);
       res.send(result);
     });
 
@@ -155,7 +182,7 @@ async function run() {
       res.send(result);
     });
 
-    // for change role
+    // for change role in userCollection
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -224,8 +251,8 @@ async function run() {
       }
       const query = { email: email };
       const options = {
-        sort: { "date": -1}
-      }
+        sort: { date: -1 },
+      };
       const result = await paymentCollection.find(query, options).toArray();
       res.send(result);
     });
